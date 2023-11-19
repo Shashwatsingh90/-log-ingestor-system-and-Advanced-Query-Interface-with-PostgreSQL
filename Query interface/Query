@@ -1,0 +1,20 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Assuming logs are stored in the same process (replace this with a database connection)
+logs = []
+
+@app.route('/search', methods=['GET'])
+def search_logs():
+    query_params = request.args
+
+    # Implement search logic based on query parameters
+    result_logs = logs
+
+    # You can add more filters based on the query parameters
+
+    return jsonify({"logs": result_logs})
+
+if __name__ == '__main__':
+    app.run(port=5000)  # Run the query interface on a different port

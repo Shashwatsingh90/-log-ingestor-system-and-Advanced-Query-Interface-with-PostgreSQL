@@ -1,0 +1,15 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# In-memory storage for logs (replace this with a database in a real-world scenario)
+logs = []
+
+@app.route('/ingest', methods=['POST'])
+def ingest_log():
+    new_log = request.get_json()
+    logs.append(new_log)
+    return jsonify({"status": "success"}), 201
+
+if __name__ == '__main__':
+    app.run(port=3000)
