@@ -1,20 +1,39 @@
 from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://your_username:your_password@localhost/your_database'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-# Assuming logs are stored in the same process (replace this with a database connection)
-logs = []
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    level = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.String(255), nullable=False)
+    resourceId = db.Column(db.String(50))
+    timestamp = db.Column(db.DateTime)
+    traceId = db.Column(db.String(50))
+    spanId = db.Column(db.String(50))
+    commit = db.Column(db.String(50))
+    parentResourceId = db.Column(db.String(50))
 
 @app.route('/search', methods=['GET'])
 def search_logs():
-    query_params = request.args
+    query_params = request.args.to_dict()
 
-    # Implement search logic based on query parameters
-    result_logs = logs
+    # Validate and process query parameters
+    valid_filters = ['level', 'message', 'resourceId', 'timestamp', 'traceId', 'spanId', 'commit', 'parentResourceId']
+    filters = {key: query_params[key] for key in query_params if key in valid_filters}
 
-    # You can add more filters based on the query parameters
+    # Query logs based on filters
+    result_logs = Log.query.filter_by(**filters).all()
+
+    # Convert SQLAlchemy objects to dictionaries
+    result_logs = [log.__dict__ for log in result_logs]
+    # Remove unnecessary keys added by SQLAlchemy
+    result_logs = [{key: log[key] for key in log if not key.startswith('_')} for log in result_logs]
 
     return jsonify({"logs": result_logs})
 
 if __name__ == '__main__':
-    app.run(port=5000)  # Run the query interface on a different port
+    app.run(port=5000)
